@@ -41,11 +41,11 @@ export const signin = async (req, res, next) => {
 
 export const google = async (req, res, next) => {
   try {
-    const user1 =await User.findOne({ email: req.body.email });
-    
+    const user1 = await User.findOne({ email: req.body.email });
+
     if (user1) {
       const token = jwt.sign({ id: user1._id }, process.env.JWT_SECRET);
-  
+
       const { password: pass, ...rest } = user1._doc;
       res
         .cookie("acces_token", token, { httpOnly: true })
@@ -73,5 +73,28 @@ export const google = async (req, res, next) => {
     }
   } catch (error) {
     next(error);
+  }
+};
+
+export const updateUserInfo = async (req, res, next) => {
+  if (req.user.id !== req.params.id)
+    return next(errorHandler(401, "you are not authorised"));
+  try {
+    if (req.body.password) {
+      req.body.password = bcrypt.hashSync(req.body.password, 10);
+    }
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, {
+      $set: {
+        username: req.body.password,
+        email: req.body.email,
+        password: req.body.password,
+        avatar: req.body.avatar,
+      },
+    },{new:true});
+    if (!updatedUser) throw errorHandler(500, "something went wrong");
+    const { password: pass, ...rest } = updatedUser._doc;
+    res.status(200).json(rest);
+  } catch (error) {
+    next(error)
   }
 };

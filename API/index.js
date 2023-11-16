@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import userRouter from "./Routes/userRoute.js";
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 const app = express();
@@ -11,9 +12,10 @@ try {
   console.log("MongoDb is connected succesfully");
 } catch (error) {
   console.log("error occured during Mongodb connection");
-
+  
 }
 
+app.use(cookieParser())
 app.use(express.json());
 app.use("/api/user", userRouter);
 app.use((err, req, res, next) => {
