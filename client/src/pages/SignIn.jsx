@@ -6,6 +6,7 @@ import {
   signInFail,
   signInSuccess,
 } from "../redux/user/userSlice";
+import OAuth from "../components/OAuth";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
@@ -21,7 +22,7 @@ export default function SignIn() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-  dispatch(signInStart)
+  dispatch(signInStart())
     try {
       const res = await fetch("/api/user/signin", {
         method: "POST",
@@ -67,9 +68,7 @@ export default function SignIn() {
         >
           {loading ? "Loading..." : "Sign In"}
         </button>
-        <button className="bg-red-700 text-white p-3 rounded-lg  hover:opacity-100 disabled:opacity-70 ">
-          Sign In with Google
-        </button>
+       <OAuth/>
       </form>
       <p className="mt-5">
         Not Have an Account?
