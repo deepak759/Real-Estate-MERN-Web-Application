@@ -1,4 +1,4 @@
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useRef, useState, useEffect } from "react";
 import {
   getDownloadURL,
@@ -7,6 +7,12 @@ import {
   uploadBytesResumable,
 } from "firebase/storage";
 import { app } from "../firebase";
+import {
+  updateUserStart,
+  updateUserSuccess,
+  updateUserFail,
+} from "../redux/user/userSlice";
+import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const fileRef = useRef(null);
@@ -14,8 +20,11 @@ export default function Profile() {
   const [filePerc, setFilePerc] = useState(0);
   const [fileUploadErr, setFileUploadErr] = useState(false);
   const [formData, setFormdata] = useState({});
-  const { currentUser } = useSelector((state) => state.user);
+  const [updateSuccess,setUpdateSuccess]=useState(false)
 
+  const { currentUser ,loading,error} = useSelector((state) => state.user);
+  const navigate=useNavigate()
+  const dispatch = useDispatch();
   useEffect(() => {
     if (file) {
       console.log(file);
@@ -48,11 +57,41 @@ export default function Profile() {
       }
     );
   };
+  const handleChange = (e) => {
+    setFormdata({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+   
+    try {
+      dispatch(updateUserStart())
+        const res = await fetch(`/api/user/update/${currentUser._id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        console.log(data);
+        if (data.success === false) {
+        dispatch(updateUserFail(data.message))
+          return;
+        }
+      
+        dispatch(updateUserSuccess(data))
+        setUpdateSuccess(true)
+        // navigate("/");
+    } catch (error) {
+      dispatch(updateUserFail(error.message));
+    }
+  };
   console.log(formData);
   return (
     <div className="p-3 max-w-lg mx-auto ">
       <h1 className="text-center text-3xl font-semibold my-7">Profile</h1>
-      <form className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="file"
           hidden
@@ -64,7 +103,7 @@ export default function Profile() {
         <img
           onClick={() => fileRef.current.click()}
           className="rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2"
-          src={ formData.avatar || currentUser.avatar}
+          src={formData.avatar || currentUser.avatar}
           alt="profile picture"
         />
         <p className="self-center">
@@ -84,27 +123,37 @@ export default function Profile() {
           placeholder="username"
           id="username"
           className="border p-3 rounded-lg"
+          defaultValue={currentUser.username}
+          onChange={handleChange}
         />
         <input
           type="email"
           placeholder="email"
           id="email"
           className="border p-3 rounded-lg"
+          defaultValue={currentUser.email}
+          onChange={handleChange}
         />
         <input
           type="password"
           placeholder="password"
           id="password"
           className="border p-3 rounded-lg"
+          onChange={handleChange}
         />
-        <button className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
-          Update
+        <button disabled={loading} className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
+        {loading ? "Loading..." : "update"}
         </button>
       </form>
       <div className="justify-between flex mt-5">
         <span className="text-red-700 cursor-pointer">Delete account</span>
         <span className="text-red-700 cursor-pointer">Sign out</span>
       </div>
+      <p>
+
+      {error && <p className="text-red-500">{error}</p>}
+      {updateSuccess && <p className="text-green-500 pt-4 ">User Updated Successfully</p>}
+      </p>
     </div>
   );
 }
