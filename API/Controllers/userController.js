@@ -83,18 +83,51 @@ export const updateUserInfo = async (req, res, next) => {
     if (req.body.password) {
       req.body.password = bcrypt.hashSync(req.body.password, 10);
     }
-    const updatedUser = await User.findByIdAndUpdate(req.user.id, {
-      $set: {
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-        avatar: req.body.avatar,
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        $set: {
+          username: req.body.username,
+          email: req.body.email,
+          password: req.body.password,
+          avatar: req.body.avatar,
+        },
       },
-    },{new:true});
+      { new: true }
+    );
     if (!updatedUser) throw errorHandler(500, "something went wrong");
     const { password: pass, ...rest } = updatedUser._doc;
     res.status(200).json(rest);
   } catch (error) {
-    next(error)
+    next(error);
+  }
+};
+
+export const deleteUser = async (req, res, next) => {
+  if (req.user.id !== req.params.id)
+    return next(errorHandler(401, "you are not authorised"));
+  try {
+    await User.findByIdAndDelete(req.user.id);
+
+    res
+      .clearCookie("acces_token")
+      .status(200)
+      .json("User Deleted Succesfully");
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logOutUser = async (req, res, next) => {
+ 
+  try {
+    
+
+    res
+      .clearCookie("acces_token")
+      .status(200)
+      .json("User logout Succesfully");
+  } catch (error) {
+    next(error);
   }
 };

@@ -11,8 +11,14 @@ import {
   updateUserStart,
   updateUserSuccess,
   updateUserFail,
+  deleteUserFail,
+  deleteUserStart,
+  deleteUserSuccess,
+  logOutUserStart,
+  logOutUserFail,
+  logOutUserSuccess,
 } from "../redux/user/userSlice";
-import { useNavigate } from "react-router-dom";
+
 
 export default function Profile() {
   const fileRef = useRef(null);
@@ -20,10 +26,10 @@ export default function Profile() {
   const [filePerc, setFilePerc] = useState(0);
   const [fileUploadErr, setFileUploadErr] = useState(false);
   const [formData, setFormdata] = useState({});
-  const [updateSuccess,setUpdateSuccess]=useState(false)
+  const [updateSuccess, setUpdateSuccess] = useState(false);
 
-  const { currentUser ,loading,error} = useSelector((state) => state.user);
-  const navigate=useNavigate()
+  const { currentUser, loading, error } = useSelector((state) => state.user);
+
   const dispatch = useDispatch();
   useEffect(() => {
     if (file) {
@@ -61,33 +67,71 @@ export default function Profile() {
     setFormdata({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-   
+
     try {
-      dispatch(updateUserStart())
-        const res = await fetch(`/api/user/update/${currentUser._id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        });
-        const data = await res.json();
-        console.log(data);
-        if (data.success === false) {
-        dispatch(updateUserFail(data.message))
-          return;
-        }
-      
-        dispatch(updateUserSuccess(data))
-        setUpdateSuccess(true)
-        // navigate("/");
+      dispatch(updateUserStart());
+      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      console.log(data);
+      if (data.success === false) {
+        dispatch(updateUserFail(data.message));
+        return;
+      }
+
+      dispatch(updateUserSuccess(data));
+      setUpdateSuccess(true);
+
     } catch (error) {
       dispatch(updateUserFail(error.message));
     }
   };
   console.log(formData);
+  const handleDelete = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      console.log(data);
+      if (data.success === false) {
+        dispatch(deleteUserFail(data.message));
+        return;
+      }
+
+      dispatch(deleteUserSuccess(data));
+
+ 
+    } catch (error) {
+      dispatch(updateUserFail(error.message));
+    }
+  };
+  const handleLogOut = async () => {
+    try {
+      dispatch(logOutUserStart());
+      const res = await fetch(`/api/user/logout`);
+      const data = await res.json();
+      console.log(data);
+      if (data.success === false) {
+        dispatch(logOutUserFail(data.message));
+        return;
+      }
+
+      dispatch(logOutUserSuccess(data));
+
+      
+    } catch (error) {
+      dispatch(logOutUserFail(error.message));
+    }
+  };
   return (
     <div className="p-3 max-w-lg mx-auto ">
       <h1 className="text-center text-3xl font-semibold my-7">Profile</h1>
@@ -141,18 +185,26 @@ export default function Profile() {
           className="border p-3 rounded-lg"
           onChange={handleChange}
         />
-        <button disabled={loading} className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80">
-        {loading ? "Loading..." : "update"}
+        <button
+          disabled={loading}
+          className="bg-slate-700 text-white rounded-lg p-3 uppercase hover:opacity-95 disabled:opacity-80"
+        >
+          {loading ? "Loading..." : "update"}
         </button>
       </form>
       <div className="justify-between flex mt-5">
-        <span className="text-red-700 cursor-pointer">Delete account</span>
-        <span className="text-red-700 cursor-pointer">Sign out</span>
+        <span onClick={handleDelete} className="text-red-700 cursor-pointer">
+          Delete account
+        </span>
+        <span onClick={handleLogOut} className="text-red-700 cursor-pointer">
+          Sign out
+        </span>
       </div>
       <p>
-
-      {error && <p className="text-red-500">{error}</p>}
-      {updateSuccess && <p className="text-green-500 pt-4 ">User Updated Successfully</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        {updateSuccess && (
+          <p className="text-green-500 pt-4 ">User Updated Successfully</p>
+        )}
       </p>
     </div>
   );
