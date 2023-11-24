@@ -94,7 +94,7 @@ export default function Profile() {
       dispatch(updateUserFail(error.message));
     }
   };
-  console.log(formData);
+
   const handleDelete = async () => {
     try {
       dispatch(deleteUserStart());
@@ -282,7 +282,10 @@ export default function Profile() {
                 >
                   delete
                 </button>
+                <Link to={`/edit-listing/${list._id}`}>
+
                 <button className="uppercase text-green-700   ">Edit</button>
+                </Link>
               </div>
             </div>
           ))}
