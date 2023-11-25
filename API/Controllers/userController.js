@@ -4,10 +4,6 @@ import { errorHandler } from "../utils/error.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
-export const getUser = (req, res) => {
-  res.send("hello");
-};
-
 export const signup = async (req, res, next) => {
   const { username, email, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10);
@@ -109,24 +105,26 @@ export const deleteUser = async (req, res, next) => {
   try {
     await User.findByIdAndDelete(req.user.id);
 
-    res
-      .clearCookie("acces_token")
-      .status(200)
-      .json("User Deleted Succesfully");
+    res.clearCookie("acces_token").status(200).json("User Deleted Succesfully");
   } catch (error) {
     next(error);
   }
 };
 
 export const logOutUser = async (req, res, next) => {
- 
   try {
-    
+    res.clearCookie("acces_token").status(200).json("User logout Succesfully");
+  } catch (error) {
+    next(error);
+  }
+};
 
-    res
-      .clearCookie("acces_token")
-      .status(200)
-      .json("User logout Succesfully");
+export const getUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return next(errorHandler(404, "user not found"));
+    const { password: pass, ...rest } = user._doc;
+    res.status(200).json(rest);
   } catch (error) {
     next(error);
   }
