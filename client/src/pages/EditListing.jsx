@@ -191,7 +191,7 @@ export default function EditListing() {
             placeholder="Description"
             className="border p-3 rounded-lg "
             id="description"
-            maxLength={60}
+            maxLength={600}
             minLength={10}
             required
             onChange={handleChange}
