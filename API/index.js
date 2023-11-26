@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import userRouter from "./Routes/userRoute.js";
 import listingRouter from "./Routes/listingRoute.js";
 import cookieParser from "cookie-parser";
+import path from 'path'
 dotenv.config();
 
 const app = express();
@@ -16,10 +17,18 @@ try {
   
 }
 
+const __dirname=path.resolve()
+
 app.use(cookieParser())
 app.use(express.json());
 app.use("/api/user", userRouter);
 app.use("/api/listing", listingRouter);
+
+app.use(express.static(path.join(__dirname,'/client/dist')))
+app.get('*',(req,res)=>{
+  res.sendFile(path.join(__dirname,'client','dist','index.html'))
+})
+
 app.use((err, req, res, next) => {
   const statuscode = err.statuscode || 500;
   const message = err.message || "Internal Server Error";
