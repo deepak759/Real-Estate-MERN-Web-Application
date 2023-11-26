@@ -34,3 +34,8 @@ Start your build process
 npm run dev
 
 10 4
+
+
+todo
+cookie problem
+respomsiveness
